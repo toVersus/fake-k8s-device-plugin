@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-hello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-hello
+  template:
+    metadata:
+      labels:
+        app: simple-hello
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: simple-hello
+        image: cgr.dev/chainguard/wolfi-base:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sleep", "infinity"]
+        resources:
+          limits:
+            3-shake.com/fake: 2

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fake-k8s-device-plugin
+  namespace: kube-system
+  labels:
+    app: fake-k8s-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app: fake-k8s-device-plugin
+  template:
+    metadata:
+      labels:
+        app: fake-k8s-device-plugin
+    spec:
+      priorityClassName: system-node-critical
+      tolerations:
+      - operator: "Exists"
+        effect: "NoExecute"
+      - operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+      - name: kubeletsockets
+        hostPath:
+          path: /var/lib/kubelet/device-plugins
+      - name: fakedev
+        hostPath:
+          path: /tmp
+      - name: pod-resources
+        hostPath:
+          path: /var/lib/kubelet/pod-resources
+      - name: proc
+        hostPath:
+          path: /proc
+      containers:
+      - image: fake-k8s-device-plugin:0.1.0
+        # command: ["sleep", "infinity"]
+        args: ["-logtostderr"]
+        name: fake-k8s-device-plugin
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          requests:
+            cpu: 50m
+            memory: 20Mi
+          limits:
+            cpu: 50m
+            memory: 20Mi
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: kubeletsockets
+          mountPath: /var/lib/kubelet/device-plugins
+        - name: pod-resources
+          mountPath: /var/lib/kubelet/pod-resources
+        - name: proc
+          mountPath: /proc
+  updateStrategy:
+    type: RollingUpdate
